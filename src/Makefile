@@ -59,8 +59,8 @@ MODULE_INTERFACE_VERSION := 700
 ## Native compiler paths
 ##
 
-CC                      := gcc
-CXX                     := g++
+CC                      := clang
+CXX                     := clang++
 AR                      := ar
 FIND                    := find
 INSTALL                 := install
@@ -198,6 +198,7 @@ ifeq ($(USE_SYSTEM_LZMA),0)
 CFLAGS_LZMA             += -D_7ZIP_ST
 ifneq ($(CC),clang)
 CFLAGS_LZMA             += -Wno-misleading-indentation
+CFLAGS_LZMA             += -std=c++23
 endif
 endif
 
@@ -208,6 +209,7 @@ CFLAGS_ZLIB             += -Wno-implicit-function-declaration
 CFLAGS_ZLIB             += -Wno-unused-parameter
 CFLAGS_ZLIB             += -DIOAPI_NO_64
 CFLAGS_ZLIB             += -DUNZ_BUFSIZE=262144
+CFLAGS_ZLIB             += -std=gnu99
 endif
 
 ## because UNRAR
@@ -218,7 +220,7 @@ CFLAGS_UNRAR            += -Wno-class-memaccess
 CFLAGS_UNRAR            += -Wno-misleading-indentation
 CFLAGS_UNRAR            += -Wno-format-overflow
 else
-CFLAGS_UNRAR            += -std=c++11
+CFLAGS_UNRAR            += -std=c++23
 endif
 CFLAGS_UNRAR            += -Wno-missing-braces
 CFLAGS_UNRAR            += -Wno-unused-variable
@@ -392,10 +394,10 @@ LFLAGS_NATIVE           += -lpowrprof
 endif # MSYS2
 
 # CCFLAGS only for C compiler
-CCFLAGS                 := -std=gnu99
+CCFLAGS                 := -std=gnu23
 
 # CXXFLAGS only for C++ compiler
-CXXFLAGS                :=
+CXXFLAGS                := -std=c++23
 
 ##
 ## Objects
@@ -689,7 +691,8 @@ ifeq ($(UNAME),MSYS2)
 MODULE_SUFFIX := dll
 endif
 
-MODULES_SRC   := $(wildcard src/modules/*.c)
+MODULES_SRC   := $(wildcard src/modules/*_22000.c)
+MODULES_SRC += src/modules/module_00000.c
 
 MODULES_DISABLE ?=
 
@@ -724,8 +727,8 @@ ifneq (,$(filter $(UNAME),Linux Darwin))
 ## Compiler paths
 ##
 
-CC_LINUX                := gcc
-CXX_LINUX               := g++
+CC_LINUX                := clang
+CXX_LINUX               := clang++
 CC_WIN                  := x86_64-w64-mingw32-gcc
 CXX_WIN                 := x86_64-w64-mingw32-g++
 

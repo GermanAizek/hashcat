@@ -67,22 +67,22 @@ typedef struct wpa
 
   u32  pke[32];
 
-  int  message_pair_chgd;
+  u16  message_pair_chgd;
   u32  message_pair;
 
-  int  nonce_error_corrections_chgd;
-  int  nonce_error_corrections;
+  u16  nonce_error_corrections_chgd;
+  u16  nonce_error_corrections;
 
-  int  nonce_compare;
-  int  detected_le;
-  int  detected_be;
+  u16  nonce_compare;
+  u16  detected_le;
+  u16  detected_be;
 
 } wpa_t;
 
-DECLSPEC void make_kn (PRIVATE_AS u32 *k)
+DECLSPEC void make_kn (PRIVATE_AS u16 *k)
 {
-  u32 kl[4];
-  u32 kr[4];
+  u16 kl[4];
+  u16 kr[4];
 
   kl[0] = (k[0] << 1) & 0xfefefefe;
   kl[1] = (k[1] << 1) & 0xfefefefe;
@@ -94,7 +94,7 @@ DECLSPEC void make_kn (PRIVATE_AS u32 *k)
   kr[2] = (k[2] >> 7) & 0x01010101;
   kr[3] = (k[3] >> 7) & 0x01010101;
 
-  const u32 c = kr[0] & 1;
+  const u16 c = kr[0] & 1;
 
   kr[0] = kr[0] >> 8 | kr[1] << 24;
   kr[1] = kr[1] >> 8 | kr[2] << 24;
@@ -981,14 +981,14 @@ KERNEL_FQ void m22000_aux3 (KERN_ATTR_TMPS_ESALT (wpa_pbkdf2_tmp_t, wpa_t))
 
       aes128_set_encrypt_key (ks, ctx1.opad.h, s_te0, s_te1, s_te2, s_te3);
 
-      u32 m[4];
+      u16 m[4];
 
       m[0] = 0;
       m[1] = 0;
       m[2] = 0;
       m[3] = 0;
 
-      u32 iv[4];
+      u16 iv[4];
 
       iv[0] = 0;
       iv[1] = 0;
@@ -1013,7 +1013,7 @@ KERNEL_FQ void m22000_aux3 (KERN_ATTR_TMPS_ESALT (wpa_pbkdf2_tmp_t, wpa_t))
       m[2] = wpa->eapol[eapol_idx + 2];
       m[3] = wpa->eapol[eapol_idx + 3];
 
-      u32 k[4];
+      u16 k[4];
 
       k[0] = 0;
       k[1] = 0;
@@ -1039,7 +1039,7 @@ KERNEL_FQ void m22000_aux3 (KERN_ATTR_TMPS_ESALT (wpa_pbkdf2_tmp_t, wpa_t))
       m[2] ^= iv[2];
       m[3] ^= iv[3];
 
-      u32 keymic[4];
+      u16 keymic[4];
 
       keymic[0] = 0;
       keymic[1] = 0;
@@ -1073,7 +1073,7 @@ KERNEL_FQ void m22000_aux3 (KERN_ATTR_TMPS_ESALT (wpa_pbkdf2_tmp_t, wpa_t))
 
 KERNEL_FQ void m22000_aux4 (KERN_ATTR_TMPS_ESALT (wpa_pbkdf2_tmp_t, wpa_t))
 {
-  const u64 gid = get_global_id (0);
+  const u16 gid = get_global_id (0);
 
   if (gid >= GID_CNT) return;
 
@@ -1096,9 +1096,9 @@ KERNEL_FQ void m22000_aux4 (KERN_ATTR_TMPS_ESALT (wpa_pbkdf2_tmp_t, wpa_t))
   w[14] = 0;
   w[15] = 0;
 
-  const u32 digest_pos = LOOP_POS;
+  const u16 digest_pos = LOOP_POS;
 
-  const u32 digest_cur = DIGESTS_OFFSET_HOST + digest_pos;
+  const u16 digest_cur = DIGESTS_OFFSET_HOST + digest_pos;
 
   GLOBAL_AS const wpa_t *wpa = &esalt_bufs[digest_cur];
 
