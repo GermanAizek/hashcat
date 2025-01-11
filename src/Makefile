@@ -43,10 +43,10 @@ endif
 ## Makefile flags
 ##
 
-MAKEFLAGS               += -l -j 8 -rR --no-print-directory
+MAKEFLAGS               += -l -j $(nproc --all) -rR --no-print-directory
 
 ifneq ($(findstring clean,$(MAKECMDGOALS)),)
-MAKEFLAGS               += -j 1
+MAKEFLAGS               += -j $(nproc --all)
 endif
 
 ##

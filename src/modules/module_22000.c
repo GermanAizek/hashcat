@@ -18,18 +18,18 @@
 #include "emu_inc_hash_md5.h"
 #include "m22000-pure.cl"
 
-static const u32   ATTACK_EXEC    = ATTACK_EXEC_OUTSIDE_KERNEL;
-static const u32   DGST_POS0      = 0;
-static const u32   DGST_POS1      = 1;
-static const u32   DGST_POS2      = 2;
-static const u32   DGST_POS3      = 3;
-static const u32   DGST_SIZE      = DGST_SIZE_4_4;
-static const u32   HASH_CATEGORY  = HASH_CATEGORY_NETWORK_PROTOCOL;
+static constexpr u32   ATTACK_EXEC    = ATTACK_EXEC_OUTSIDE_KERNEL;
+static constexpr u32   DGST_POS0      = 0;
+static constexpr u32   DGST_POS1      = 1;
+static constexpr u32   DGST_POS2      = 2;
+static constexpr u32   DGST_POS3      = 3;
+static constexpr u32   DGST_SIZE      = DGST_SIZE_4_4;
+static constexpr u32   HASH_CATEGORY  = HASH_CATEGORY_NETWORK_PROTOCOL;
 static const char *HASH_NAME      = "WPA-PBKDF2-PMKID+EAPOL";
-static const u64   KERN_TYPE      = 22000;
-static const u32   OPTI_TYPE      = OPTI_TYPE_ZERO_BYTE
+static constexpr u64   KERN_TYPE      = 22000;
+static constexpr u32   OPTI_TYPE      = OPTI_TYPE_ZERO_BYTE
                                   | OPTI_TYPE_SLOW_HASH_SIMD_LOOP;
-static const u64   OPTS_TYPE      = OPTS_TYPE_STOCK_MODULE
+static constexpr u64   OPTS_TYPE      = OPTS_TYPE_STOCK_MODULE
                                   | OPTS_TYPE_PT_GENERATE_LE
                                   | OPTS_TYPE_AUX1
                                   | OPTS_TYPE_AUX2
@@ -39,7 +39,7 @@ static const u64   OPTS_TYPE      = OPTS_TYPE_STOCK_MODULE
                                   | OPTS_TYPE_BINARY_HASHFILE_OPTIONAL
                                   | OPTS_TYPE_DEEP_COMP_KERNEL
                                   | OPTS_TYPE_COPY_TMPS;
-static const u32   SALT_TYPE      = SALT_TYPE_EMBEDDED;
+static constexpr u32   SALT_TYPE      = SALT_TYPE_EMBEDDED;
 static const char *ST_PASS        = "hashcat!";
 static const char *ST_HASH        = "WPA*01*4d4fe7aac3a2cecab195321ceb99a7d0*fc690c158264*f4747f87f9f4*686173686361742d6573736964***";
 
@@ -58,7 +58,7 @@ u32         module_salt_type      (MAYBE_UNUSED const hashconfig_t *hashconfig, 
 const char *module_st_hash        (MAYBE_UNUSED const hashconfig_t *hashconfig, MAYBE_UNUSED const user_options_t *user_options, MAYBE_UNUSED const user_options_extra_t *user_options_extra) { return ST_HASH;         }
 const char *module_st_pass        (MAYBE_UNUSED const hashconfig_t *hashconfig, MAYBE_UNUSED const user_options_t *user_options, MAYBE_UNUSED const user_options_extra_t *user_options_extra) { return ST_PASS;         }
 
-static const u32 ROUNDS_WPA_PBKDF2 = 4096;
+static constexpr u32 ROUNDS_WPA_PBKDF2 = 4096;
 
 // this is required to force mingw to accept the packed attribute
 #pragma pack(push,1)
@@ -122,14 +122,14 @@ const char *module_benchmark_mask (MAYBE_UNUSED const hashconfig_t *hashconfig, 
 
 u64 module_tmp_size (MAYBE_UNUSED const hashconfig_t *hashconfig, MAYBE_UNUSED const user_options_t *user_options, MAYBE_UNUSED const user_options_extra_t *user_options_extra)
 {
-  const u64 tmp_size = (const u64) sizeof (wpa_pbkdf2_tmp_t);
+  constexpr u64 tmp_size = (const u64) sizeof (wpa_pbkdf2_tmp_t);
 
   return tmp_size;
 }
 
 u64 module_esalt_size (MAYBE_UNUSED const hashconfig_t *hashconfig, MAYBE_UNUSED const user_options_t *user_options, MAYBE_UNUSED const user_options_extra_t *user_options_extra)
 {
-  const u64 esalt_size = (const u64) sizeof (wpa_t);
+  constexpr u64 esalt_size = (const u64) sizeof (wpa_t);
 
   return esalt_size;
 }
@@ -138,7 +138,9 @@ static bool is_hccapx (HCFILE *fp)
 {
   hccapx_t hccapx;
 
-  const size_t nread = hc_fread (&hccapx, sizeof (hccapx_t), 1, fp);
+  constexpr auto hccapx_size = sizeof (hccapx_t);
+
+  const size_t nread = hc_fread (&hccapx, hccapx_size, 1, fp);
 
   if (nread == 1)
   {
@@ -181,17 +183,20 @@ int module_hash_binary_parse (MAYBE_UNUSED const hashconfig_t *hashconfig, MAYBE
 
   if (r == true)
   {
-    char *in = (char *) hcmalloc (sizeof (hccapx_t));
+    constexpr auto hccapx_size = sizeof (hccapx_t);
+    constexpr auto salt_size = sizeof (salt_t);
+    constexpr auto wpa_size = sizeof (wpa_t);
+    char *in = (char *) hcmalloc (hccapx_size);
 
     while (!hc_feof (&fp))
     {
-      const size_t nread = hc_fread (in, sizeof (hccapx_t), 1, &fp);
+      const size_t nread = hc_fread (in, hccapx_size, 1, &fp);
 
       if (nread == 0) break;
 
-      memset (hashes_buf[hashes_cnt].salt, 0, sizeof (salt_t));
+      memset (hashes_buf[hashes_cnt].salt, 0, salt_size);
 
-      memset (hashes_buf[hashes_cnt].esalt, 0, sizeof (wpa_t));
+      memset (hashes_buf[hashes_cnt].esalt, 0, wpa_size);
 
       /* moved to module_hash_decode_postprocess()
       wpa_t *wpa = (wpa_t *) hashes_buf[hashes_cnt].esalt;
@@ -205,7 +210,7 @@ int module_hash_binary_parse (MAYBE_UNUSED const hashconfig_t *hashconfig, MAYBE
 
       hash_t *hash = &hashes_buf[hashes_cnt];
 
-      const int parser_status = module_hash_decode (hashconfig, hash->digest, hash->salt, hash->esalt, hash->hook_salt, hash->hash_info, in, sizeof (hccapx_t));
+      const int parser_status = module_hash_decode (hashconfig, hash->digest, hash->salt, hash->esalt, hash->hook_salt, hash->hash_info, in, hccapx_size);
 
       if (parser_status != PARSER_OK) continue;
 
@@ -216,6 +221,8 @@ int module_hash_binary_parse (MAYBE_UNUSED const hashconfig_t *hashconfig, MAYBE
   }
   else
   {
+    constexpr auto salt_size = sizeof (salt_t);
+    constexpr auto wpa_size = sizeof (wpa_t);
     char *line_buf = (char *) hcmalloc (HCBUFSIZ_LARGE);
 
     while (!hc_feof (&fp))
@@ -224,9 +231,9 @@ int module_hash_binary_parse (MAYBE_UNUSED const hashconfig_t *hashconfig, MAYBE
 
       if (line_len == 0) continue;
 
-      memset (hashes_buf[hashes_cnt].salt, 0, sizeof (salt_t));
+      memset (hashes_buf[hashes_cnt].salt, 0, salt_size);
 
-      memset (hashes_buf[hashes_cnt].esalt, 0, sizeof (wpa_t));
+      memset (hashes_buf[hashes_cnt].esalt, 0, wpa_size);
 
       /* moved to module_hash_decode_postprocess()
       wpa_t *wpa = (wpa_t *) hashes_buf[hashes_cnt].esalt;
